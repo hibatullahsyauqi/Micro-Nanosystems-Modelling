@@ -1,0 +1,16 @@
+import math as math
+N = 10
+x = 1
+a = 0
+b = .1
+real = math.exp(1)
+
+def f(x):
+    return math.exp(x)
+for j in range (9):
+    h = (b-a)/N
+    diff_2 = (f(x + h) - 2*f(x) + f(x - h))/(h*h)
+    for i in range (N):
+        error = real - diff_2
+    print(f'diff_2: ', diff_2, '\th: ', h, '\terror: ', error)
+    N *= 10
