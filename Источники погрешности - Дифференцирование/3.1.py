@@ -2,7 +2,7 @@ import math as math
 N = 10
 x = 1
 a = 0
-b = .1
+b = 0.1
 real = math.exp(1)
 
 def f(x):
