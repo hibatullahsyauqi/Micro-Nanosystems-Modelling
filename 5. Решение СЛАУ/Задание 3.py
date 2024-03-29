@@ -1,71 +1,109 @@
 import numpy as np
 
-# Определение функции метода Гаусса
-def gaussian_elimination(A, B):
+def check_linear_dependence(A, B):
+    """
+    Проверяет систему линейных уравнений на линейную зависимость.
+
+    Args:
+        A (numpy.ndarray): Матрица коэффициентов уравнений.
+        B (numpy.ndarray): Вектор правых частей уравнений.
+
+    Returns:
+        bool: True, если система несингулярна (имеет единственное решение), False в противном случае.
+    """
+    n = len(A)
+    for i in range(n):
+        # Находим опорную строку с максимальным по модулю элементом в столбце
+        pivot_row = np.argmax(np.abs(A[i:, i])) + i
+        pivot_value = A[i][i]
+        
+        if np.abs(pivot_value) < 1e-10:
+            return False  # Система сингулярна
+        
+        # Переставляем строки при необходимости
+        if pivot_row != i:
+            A[pivot_row], A[i] = A[i].copy(), A[pivot_row].copy()  # Используем копию, чтобы избежать проблем с ссылками
+            B[pivot_row], B[i] = B[i].copy(), B[pivot_row].copy()
+        
+        # Исключаем опорный столбец
+        for j in range(i+1, n):
+            factor = A[j][i] / A[i][i]
+            A[j] -= factor * A[i]
+            B[j] -= factor * B[i]
+    
+    # Проверяем, есть ли нулевой элемент на диагонали
+    if any(abs(A[i][i]) < 1e-10 for i in range(n)):
+        return False  # Система сингулярна
+    
+    return True  # Система имеет единственное решение
+
+def solve_linear_equations(A, B):
+    """
+    Решает систему линейных уравнений методом Гаусса.
+
+    Args:
+        A (numpy.ndarray): Матрица коэффициентов уравнений.
+        B (numpy.ndarray): Вектор правых частей уравнений.
+
+    Returns:
+        list: Список значений переменных, образующих решение системы уравнений.
+    """
     n = len(A)
 
-    # Прямой ход метода Гаусса
+    # Прямая
     for i in range(n):
-        # Поиск максимального элемента в столбце для частичного выбора
-        max_row = i
-        for j in range(i + 1, n):
-            if abs(A[j][i]) > abs(A[max_row][i]):
-                max_row = j
+        pivot_val = A[i][i]
+        for j in range(i+1, n):
+            ratio = A[j][i] / pivot_val
+            for k in range(n):
+                A[j][k] -= ratio * A[i][k]
+            B[j] -= ratio * B[i]
 
-        # Обмен строк
-        A[i], A[max_row] = A[max_row], A[i]
-        B[i], B[max_row] = B[max_row], B[i]
-
-        # Приведение к диагональному виду
-        for j in range(i + 1, n):
-            factor = A[j][i] / A[i][i]
-            for k in range(i, n):
-                A[j][k] -= factor * A[i][k]
-            B[j] -= factor * B[i]
-
-    # Обратный ход метода Гаусса
+    # Обратная
     X = [0] * n
-    for i in range(n - 1, -1, -1):
-        X[i] = B[i] / A[i][i]
-        for j in range(i):
-            B[j] -= A[j][i] * X[i]
+    for i in range(n-1, -1, -1):
+        summation = sum(A[i][j] * X[j] for j in range(i+1, n))
+        X[i] = (B[i] - summation) / A[i][i]
 
     return X
 
-# Матрица A и матрица B
-A = np.array([[6, -4, 1],
-              [-4, 6, -4],
-              [1, -4, 6]])
+def check_solution(A, B, X):
+    """
+    Проверяет решение системы линейных уравнений.
 
-B = np.array([[-14, 22],
-              [36, -18],
-              [6, 7]])
+    Args:
+        A (numpy.ndarray): Матрица коэффициентов уравнений.
+        B (numpy.ndarray): Вектор правых частей уравнений.
+        X (list): Решение системы уравнений.
 
-# Решение системы уравнений с помощью метода Гаусса
-solution_1 = gaussian_elimination(A, [b[0] for b in B])
-solution_2 = gaussian_elimination(A, [b[1] for b in B])
+    Returns:
+        bool: True, если решение удовлетворяет условию, False в противном случае.
+    """
+    # Выполняем умножение матрицы на вектор
+    result = np.dot(A, X)
 
-# Вывод результатов для Solution 1
-print("Solution 1:")
-print("Gaussian Elimination:")
-print("x1 =", solution_1[0])
-print("x2 =", solution_1[1])
-print("x3 =", solution_1[2])
+    # Проверяем, равен ли результат B
+    return np.allclose(result, B)
 
-# Вывод результатов для Solution 2
-print("Solution 2:")
-print("Gaussian Elimination:")
-print("x1 =", solution_2[0])
-print("x2 =", solution_2[1])
-print("x3 =", solution_2[2])
+# Задаем матрицу коэффициентов и вектор правых частей
+A = np.array([[2, -3, -1], [3, 2, -5], [2, 4, 1]], dtype=np.float64)
+B = np.array([[3], [-9], [-5]], dtype=np.float64)
 
-# Проверка решений
-# Проверка для Solution 1
-print("Check Solution 1:")
-print("A * solution_1 =", np.dot(A, solution_1))
-print("B[:, 0] =", B[:, 0])
+# Вычисляем определитель матрицы A
+# det_A = np.linalg.det(A)
+# print("Определитель A:", det_A)
 
-# Проверка для Solution 2
-print("\nCheck Solution 2:")
-print("A * solution_2 =", np.dot(A, solution_2))
-print("B[:, 1] =", B[:, 1])
+# Проверяем, имеет ли система единственное решение
+if check_linear_dependence(A, B):
+    # Решаем для X
+    X = solve_linear_equations(A, B)
+    print("Решение для X:")
+    print(X)
+else:
+    print("Система уравнений сингулярна и может не иметь единственного решения.")
+    
+# Проверяем, удовлетворяет ли решение условию AX = B
+if check_solution(A, B, X):
+    print("X удовлетворяет условию AX = B.")
+else:
+    print("X не удовлетворяет условию AX = B.")
