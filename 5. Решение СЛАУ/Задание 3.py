@@ -46,24 +46,30 @@ def solve_linear_equations(A, B):
         B (numpy.ndarray): Вектор правых частей уравнений.
 
     Returns:
-        list: Список значений переменных, образующих решение системы уравнений.
+        numpy.ndarray or None: Матрица значений переменных, образующих решение системы уравнений, 
+                               либо None, если система сингулярна.
     """
     n = len(A)
+    num_eqns = B.shape[1]  # Количество столбцов в B
+    X = np.zeros((n, num_eqns))  # Инициализируем матрицу решений
 
-    # Прямая
-    for i in range(n):
-        pivot_val = A[i][i]
-        for j in range(i+1, n):
-            ratio = A[j][i] / pivot_val
-            for k in range(n):
-                A[j][k] -= ratio * A[i][k]
-            B[j] -= ratio * B[i]
+    for col in range(num_eqns):
+        # Прямая исключительная операция
+        for i in range(n):
+            pivot_val = A[i][i]
+            if np.abs(pivot_val) < 1e-10:
+                print("Система уравнений сингулярна и может не иметь единственного решения.")
+                return None  # Система сингулярна
+            for j in range(i+1, n):
+                ratio = A[j][i] / pivot_val
+                for k in range(n):
+                    A[j][k] -= ratio * A[i][k]
+                B[j][col] -= ratio * B[i][col]
 
-    # Обратная
-    X = [0] * n
-    for i in range(n-1, -1, -1):
-        summation = sum(A[i][j] * X[j] for j in range(i+1, n))
-        X[i] = (B[i] - summation) / A[i][i]
+        # Обратная подстановка
+        for i in range(n-1, -1, -1):
+            summation = sum(A[i][j] * X[j][col] for j in range(i+1, n))
+            X[i][col] = (B[i][col] - summation) / A[i][i]
 
     return X
 
@@ -74,36 +80,33 @@ def check_solution(A, B, X):
     Args:
         A (numpy.ndarray): Матрица коэффициентов уравнений.
         B (numpy.ndarray): Вектор правых частей уравнений.
-        X (list): Решение системы уравнений.
+        X (numpy.ndarray): Матрица значений переменных, образующих решение системы уравнений.
 
     Returns:
         bool: True, если решение удовлетворяет условию, False в противном случае.
     """
-    # Выполняем умножение матрицы на вектор
+    if X is None:
+        return False  # Система сингулярна
+    
+    # Выполняем умножение матрицы на матрицу
     result = np.dot(A, X)
 
     # Проверяем, равен ли результат B
     return np.allclose(result, B)
 
-# Задаем матрицу коэффициентов и вектор правых частей
-A = np.array([[2, -3, -1], [3, 2, -5], [2, 4, 1]], dtype=np.float64)
-B = np.array([[3], [-9], [-5]], dtype=np.float64)
+# Пример использования
+A = np.array([[6, -4, 1], [-4, 6, -4], [1, -4, 6]], dtype=np.float64)
+B = np.array([[-14, 22], [36, -18], [6, 7]], dtype=np.float64)
 
-# Вычисляем определитель матрицы A
-# det_A = np.linalg.det(A)
-# print("Определитель A:", det_A)
+# Вызываем функцию для решения уравнений для каждого столбца B
+solutions = solve_linear_equations(A, B)
+if solutions is not None:
+    print("Решение для каждого столбца B:")
+    print(solutions)
 
-# Проверяем, имеет ли система единственное решение
-if check_linear_dependence(A, B):
-    # Решаем для X
-    X = solve_linear_equations(A, B)
-    print("Решение для X:")
-    print(X)
-else:
-    print("Система уравнений сингулярна и может не иметь единственного решения.")
-    
-# Проверяем, удовлетворяет ли решение условию AX = B
-if check_solution(A, B, X):
-    print("X удовлетворяет условию AX = B.")
-else:
-    print("X не удовлетворяет условию AX = B.")
+    # Проверяем, удовлетворяет ли решение условию AX = B для каждого столбца B
+    for i, col_solution in enumerate(solutions.T):
+        if check_solution(A, B[:, i], col_solution):
+            print(f"Решение для столбца {i+1} удовлетворяет условию AX = B.")
+        else:
+            print(f"Решение для столбца {i+1} не удовлетворяет условию AX = B.")

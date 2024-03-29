@@ -86,7 +86,7 @@ def check_solution(A, B, X):
     return np.allclose(result, B)
 
 # Задаем матрицу коэффициентов и вектор правых частей
-A = np.array([[2, -3, -1], [3, 2, -5], [2, 4, 1]], dtype=np.float64)
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
 B = np.array([[3], [-9], [-5]], dtype=np.float64)
 
 # Вычисляем определитель матрицы A
@@ -99,11 +99,11 @@ if check_linear_dependence(A, B):
     X = solve_linear_equations(A, B)
     print("Решение для X:")
     print(X)
+    # Проверяем, удовлетворяет ли решение условию AX = B
+    if check_solution(A, B, X):
+        print("X удовлетворяет условию AX = B.")
+    else:
+        print("X не удовлетворяет условию AX = B.")
 else:
     print("Система уравнений сингулярна и может не иметь единственного решения.")
-    
-# Проверяем, удовлетворяет ли решение условию AX = B
-if check_solution(A, B, X):
-    print("X удовлетворяет условию AX = B.")
-else:
-    print("X не удовлетворяет условию AX = B.")
+

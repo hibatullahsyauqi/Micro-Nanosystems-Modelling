@@ -93,17 +93,17 @@ B = np.array([[3], [-9], [-5]], dtype=np.float64)
 # det_A = np.linalg.det(A)
 # print("Определитель A:", det_A)
 
+
 # Проверяем, имеет ли система единственное решение
 if check_linear_dependence(A, B):
     # Решаем для X
     X = solve_linear_equations(A, B)
     print("Решение для X:")
     print(X)
+    # Проверяем, удовлетворяет ли решение условию AX = B
+    if check_solution(A, B, X):
+        print("X удовлетворяет условию AX = B.")
+    else:
+        print("X не удовлетворяет условию AX = B.")
 else:
     print("Система уравнений сингулярна и может не иметь единственного решения.")
-    
-# Проверяем, удовлетворяет ли решение условию AX = B
-if check_solution(A, B, X):
-    print("X удовлетворяет условию AX = B.")
-else:
-    print("X не удовлетворяет условию AX = B.")
