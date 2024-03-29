@@ -95,8 +95,8 @@ def check_solution(A, B, X):
     return np.allclose(result, B)
 
 # Задаем матрицу коэффициентов и вектор правых частей
-A = np.array([[2, 0, -1, 0], [0, 1, 2, 0], [-1, 2, 0, 1], [0, 0, 1, -2]], dtype=np.float64)
-B = np.array([[1, 0], [0, 0], [0, 1], [0, 0]], dtype=np.float64)
+A = np.array([[0, 0, 2, 1, 2], [0, 1, 0, 2, -1], [1, 2, 0, -2, 0], [0, 0, 0, -1, 1], [0, 1, -1, 1, -1]], dtype=np.float64)
+B = np.array([[1], [1], [-4], [-2], [-1]], dtype=np.float64)
 
 # Вычисляем определитель матрицы A
 # det_A = np.linalg.det(A)
@@ -114,5 +114,3 @@ if solutions is not None:
             print(f"Решение для столбца {i+1} удовлетворяет условию AX = B.")
         else:
             print(f"Решение для столбца {i+1} не удовлетворяет условию AX = B.")
-
-
