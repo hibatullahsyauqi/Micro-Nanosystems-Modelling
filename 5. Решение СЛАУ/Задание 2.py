@@ -1,48 +1,57 @@
-def gauss_elimination(A, B):
-    # Проверка совместности системы
-    if len(A) != len(B):
-        return "Несовместная система"
+def is_linearly_dependent(matrix):
+    """
+    Проверяет, линейно зависимы ли строки матрицы.
+    """
+    for i in range(len(matrix)):
+        for j in range(i+1, len(matrix)):
+            if matrix[j][i] != 0:
+                return True  # Система является сингулярной
+    return False  # Система имеет единственное решение
 
-    # Прямой ход метода Гаусса
+def gaussian_elimination(A, B):
+    """
+    Выполняет метод Гаусса для решения системы уравнений AX = B.
+    """
     n = len(A)
+    
+    # Прямой ход
     for i in range(n):
-        # Поиск максимального элемента в столбце
-        max_row = i
-        for k in range(i + 1, n):
-            if abs(A[k][i]) > abs(A[max_row][i]):
-                max_row = k
-
-        # Обмен строк
-        A[i], A[max_row] = A[max_row], A[i]
-        B[i], B[max_row] = B[max_row], B[i]
-
-        # Приведение к диагональному виду
-        for k in range(i + 1, n):
-            factor = A[k][i] / A[i][i]
-            for j in range(i, n):
-                A[k][j] -= factor * A[i][j]
-            B[k] -= factor * B[i]
-
-    # Обратный ход метода Гаусса
+        for j in range(i + 1, n):
+            factor = A[j][i] / A[i][i]
+            for k in range(i, n):
+                A[j][k] -= factor * A[i][k]
+            B[j][0] -= factor * B[i][0]
+    
+    # Обратный ход
     X = [0] * n
     for i in range(n - 1, -1, -1):
-        X[i] = B[i]
+        X[i] = B[i][0] / A[i][i]
         for j in range(i + 1, n):
-            X[i] -= A[i][j] * X[j]
-        X[i] /= A[i][i]
-
+            X[i] -= A[i][j] * X[j] / A[i][i]
+    
     return X
 
-# Матрица A и вектор B из вашего примера
+def verify_solution(A, X, B):
+    """
+    Проверяет, удовлетворяет ли решение X уравнению AX = B.
+    """
+    return all(abs(sum(A[i][j] * X[j] for j in range(len(X))) - B[i][0]) < 1e-10 for i in range(len(B)))
+
+# Пример использования
 A = [[2, -3, -1],
      [3, 2, -5],
      [2, 4, 1]]
 
-B = [3, -9, -5]
+B = [[3],
+     [-9],
+     [-5]]
 
-# Решение системы уравнений
-solution = gauss_elimination(A, B)
-print("Solution:")
-print("x =", solution[0])
-print("y =", solution[1])
-print("z =", solution[2])
+if is_linearly_dependent(A):
+    print("Система является сингулярной. Нет единственного решения.")
+else:
+    X = gaussian_elimination(A, B)
+    print("Решение X:", X)
+    if verify_solution(A, X, B):
+        print("Решение удовлетворяет уравнению AX = B.")
+    else:
+        print("Решение не удовлетворяет уравнению AX = B.")
