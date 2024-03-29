@@ -54,7 +54,7 @@ def solve_linear_equations(A, B):
     X = np.zeros((n, num_eqns))  # Инициализируем матрицу решений
 
     for col in range(num_eqns):
-        # Прямая исключительная операция
+        # Прямая
         for i in range(n):
             pivot_val = A[i][i]
             if np.abs(pivot_val) < 1e-10:
@@ -66,7 +66,7 @@ def solve_linear_equations(A, B):
                     A[j][k] -= ratio * A[i][k]
                 B[j][col] -= ratio * B[i][col]
 
-        # Обратная подстановка
+        # Обратная
         for i in range(n-1, -1, -1):
             summation = sum(A[i][j] * X[j][col] for j in range(i+1, n))
             X[i][col] = (B[i][col] - summation) / A[i][i]
