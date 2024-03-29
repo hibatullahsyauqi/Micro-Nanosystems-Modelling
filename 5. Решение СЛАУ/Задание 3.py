@@ -94,7 +94,7 @@ def check_solution(A, B, X):
     # Проверяем, равен ли результат B
     return np.allclose(result, B)
 
-# Пример использования
+# Задаем матрицу коэффициентов и вектор правых частей
 A = np.array([[6, -4, 1], [-4, 6, -4], [1, -4, 6]], dtype=np.float64)
 B = np.array([[-14, 22], [36, -18], [6, 7]], dtype=np.float64)
 
