@@ -1,8 +1,9 @@
 def determinant(matrix):
     n = len(matrix)
-    # базовый случай для матрицы 2x2
+    # случай для матрицы 2x2
     if n == 2:
         return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+    # случай для матрицы nxn
     else:
         det = 0
         for j in range(n):
