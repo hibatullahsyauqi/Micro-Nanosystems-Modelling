@@ -1,116 +1,72 @@
-import numpy as np
+def determinant(matrix):
+    n = len(matrix)
+    if n == 1:  # Если матрица размером 1x1
+        return matrix[0][0]  # Возвращаем элемент матрицы
+    elif n == 2:  # Если матрица размером 2x2
+        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]  # Возвращаем определитель по формуле для 2x2 матрицы
+    else:  # Если матрица размером больше 2x2
+        det = 0
+        for j in range(n):
+            det += ((-1) ** j) * matrix[0][j] * determinant(minor(matrix, 0, j))
+            # Рекурсивно вычисляем определитель, используя миноры
+        return det
 
-def check_linear_dependence(A, B):
-    """
-    Проверяет систему линейных уравнений на линейную зависимость.
+def minor(matrix, row, col):
+    return [row[:col] + row[col+1:] for row in (matrix[:row] + matrix[row+1:])]
+    # Функция для получения минора матрицы
 
-    Args:
-        A (numpy.ndarray): Матрица коэффициентов уравнений.
-        B (numpy.ndarray): Вектор правых частей уравнений.
+def is_singular(matrix):
+    return determinant(matrix) == 0
 
-    Returns:
-        bool: True, если система несингулярна (имеет единственное решение), False в противном случае.
-    """
+def matrix_vector_product(matrix, vector):
+    return [sum(matrix[i][j] * vector[j] for j in range(len(vector))) for i in range(len(matrix))]
+
+def is_close(vector1, vector2, delta=1e-10):
+    return all(abs(a - b) < delta for a, b in zip(vector1, vector2))
+
+def gauss_elimination(A, B):
     n = len(A)
-    for i in range(n):
-        # Находим опорную строку с максимальным по модулю элементом в столбце
-        pivot_row = np.argmax(np.abs(A[i:, i])) + i
-        pivot_value = A[i][i]
-        
-        if np.abs(pivot_value) < 1e-10:
-            return False  # Система сингулярна
-        
-        # Переставляем строки при необходимости
-        if pivot_row != i:
-            A[pivot_row], A[i] = A[i].copy(), A[pivot_row].copy()  # Используем копию, чтобы избежать проблем с ссылками
-            B[pivot_row], B[i] = B[i].copy(), B[pivot_row].copy()
-        
-        # Исключаем опорный столбец
-        for j in range(i+1, n):
-            factor = A[j][i] / A[i][i]
-            A[j] -= factor * A[i]
-            B[j] -= factor * B[i]
-    
-    # Проверяем, есть ли нулевой элемент на диагонали
-    if any(abs(A[i][i]) < 1e-10 for i in range(n)):
-        return False  # Система сингулярна
-    
-    return True  # Система имеет единственное решение
+    for k in range(n - 1):  
+        for i in range(k + 1, n):
+            if A[i][k] != 0:
+                factor = A[i][k] / A[k][k]
+                for j in range(k, n):
+                    A[i][j] -= factor * A[k][j]
+                for j in range(len(B[0])):
+                    B[i][j] -= factor * B[k][j]
+    x = [[0] * len(B[0]) for _ in range(n)]
+    for col in range(len(B[0])):
+        x[n - 1][col] = B[n - 1][col] / A[n - 1][n - 1]  
+        for i in range(n - 2, -1, -1):  
+            sum_ax = sum(A[i][j] * x[j][col] for j in range(i + 1, n))
+            x[i][col] = (B[i][col] - sum_ax) / A[i][i]  
+    return x
 
-def solve_linear_equations(A, B):
-    """
-    Решает систему линейных уравнений методом Гаусса.
+def verify_solution(A, X, B):
+    for col in range(len(B[0])):
+        Ax = matrix_vector_product(A, [row[col] for row in X])
+        if not is_close(Ax, [row[col] for row in B]):
+            return False
+    return True
 
-    Args:
-        A (numpy.ndarray): Матрица коэффициентов уравнений.
-        B (numpy.ndarray): Вектор правых частей уравнений.
+A = [[0, 0, 2, 1, 2], 
+     [0, 1, 0, 2, -1], 
+     [1, 2, 0, -2, 0], 
+     [0, 0, 0, -1, 1], 
+     [0, 1, -1, 1, -1]]
+B = [[1], 
+     [1], 
+     [-4], 
+     [-2], 
+     [-1]]
 
-    Returns:
-        numpy.ndarray or None: Матрица значений переменных, образующих решение системы уравнений, 
-                               либо None, если система сингулярна.
-    """
-    n = len(A)
-    num_eqns = B.shape[1]  # Количество столбцов в B
-    X = np.zeros((n, num_eqns))  # Инициализируем матрицу решений
+if is_singular(A):
+    print("Коэффициентная матрица A является сингулярной. Система может не иметь единственного решения.")
+else:
+    solution = gauss_elimination(A, B)
+    print("Решение:", solution)
 
-    for col in range(num_eqns):
-        # Прямая
-        for i in range(n):
-            pivot_val = A[i][i]
-            if np.abs(pivot_val) < 1e-10:
-                print("Система уравнений сингулярна и может не иметь единственного решения.")
-                return None  # Система сингулярна
-            for j in range(i+1, n):
-                ratio = A[j][i] / pivot_val
-                for k in range(n):
-                    A[j][k] -= ratio * A[i][k]
-                B[j][col] -= ratio * B[i][col]
-
-        # Обратная
-        for i in range(n-1, -1, -1):
-            summation = sum(A[i][j] * X[j][col] for j in range(i+1, n))
-            X[i][col] = (B[i][col] - summation) / A[i][i]
-
-    return X
-
-def check_solution(A, B, X):
-    """
-    Проверяет решение системы линейных уравнений.
-
-    Args:
-        A (numpy.ndarray): Матрица коэффициентов уравнений.
-        B (numpy.ndarray): Вектор правых частей уравнений.
-        X (numpy.ndarray): Матрица значений переменных, образующих решение системы уравнений.
-
-    Returns:
-        bool: True, если решение удовлетворяет условию, False в противном случае.
-    """
-    if X is None:
-        return False  # Система сингулярна
-    
-    # Выполняем умножение матрицы на матрицу
-    result = np.dot(A, X)
-
-    # Проверяем, равен ли результат B
-    return np.allclose(result, B)
-
-# Задаем матрицу коэффициентов и вектор правых частей
-A = np.array([[0, 0, 2, 1, 2], [0, 1, 0, 2, -1], [1, 2, 0, -2, 0], [0, 0, 0, -1, 1], [0, 1, -1, 1, -1]], dtype=np.float64)
-B = np.array([[1], [1], [-4], [-2], [-1]], dtype=np.float64)
-
-# Вычисляем определитель матрицы A
-# det_A = np.linalg.det(A)
-# print("Определитель A:", det_A)
-
-# Вызываем функцию для решения уравнений для каждого столбца B
-solutions = solve_linear_equations(A, B)
-if solutions is not None:
-    print("Решение для каждого столбца B:")
-    print(solutions)
-
-    # Проверяем, удовлетворяет ли решение условию AX = B для каждого столбца B
-    for i, col_solution in enumerate(solutions.T):
-        if check_solution(A, B[:, i], col_solution):
-            print(f"Решение для столбца {i+1} удовлетворяет условию AX = B.")
-        else:
-            print(f"Решение для столбца {i+1} не удовлетворяет условию AX = B.")
+    if verify_solution(A, solution, B):
+        print("Решение удовлетворяет уравнению AX = B.")
+    else:
+        print("Решение не удовлетворяет уравнению AX = B.")
