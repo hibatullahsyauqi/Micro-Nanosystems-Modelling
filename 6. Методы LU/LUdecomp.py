@@ -2,23 +2,24 @@ import numpy as np
 
 def LUdecomp(a):
     """
-    Выполняет LU-разложение с использованием метода Дулиттла.
+    Выполняет LU-разложение матрицы `a` с использованием метода Дулиттла.
 
     Параметры:
         a: numpy.ndarray
             Матрица коэффициентов системы уравнений.
 
     Возвращает:
-        a: numpy.ndarray
+        LU: numpy.ndarray
             Объединенная нижняя и верхняя треугольные матрицы [L|U].
     """
+    a = a.astype(float)  # Преобразование матрицы к типу с плавающей запятой
     n = len(a)
-    for k in range(0, n - 1):
+    for k in range(n - 1):
         for i in range(k + 1, n):
             if a[i, k] != 0.0:
                 lam = a[i, k] / a[k, k]
-                a[i, k + 1:n] = a[i, k + 1:n] - lam * a[k, k + 1:n]
-                a[i, k] = lam
+                a[i, k + 1:n] -= lam * a[k, k + 1:n]  # Изменение элементов нижних строк
+                a[i, k] = lam  # Сохранение множителя в нижнем треугольнике
     return a
 
 def LUsolve(a, b):
@@ -36,9 +37,13 @@ def LUsolve(a, b):
             Вектор решений.
     """
     n = len(a)
+    b = b.astype(float)  # Преобразование вектора констант к типу с плавающей запятой
+    # Прямая подстановка
     for k in range(1, n):
-        b[k] = b[k] - np.dot(a[k, 0:k], b[0:k])
-    b[n - 1] = b[n - 1] / a[n - 1, n - 1]
-    for k in range(n - 2, -1, -1):
-        b[k] = (b[k] - np.dot(a[k, k + 1:n], b[k + 1:n])) / a[k, k]
-    return b
+        b[k] -= np.dot(a[k, 0:k], b[0:k])
+    # Обратная подстановка
+    x = np.zeros_like(b)  # Инициализация вектора решений
+    x[n - 1] = b[n - 1] / a[n - 1, n - 1]
+    for i in range(n - 2, -1, -1):
+        x[i] = (b[i] - np.dot(a[i, i + 1:], x[i + 1:])) / a[i, i]
+    return x
