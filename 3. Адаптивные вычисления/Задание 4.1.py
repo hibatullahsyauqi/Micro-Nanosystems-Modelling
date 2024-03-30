@@ -1,37 +1,39 @@
 import numpy as np
 
-def adaptive_gauss_quad(f, a, b, epsilon):
-    # 3-узловая квадратура Гаусса
+def f(x):
+    return np.sin(x)
+
+def gauss_quad_3_nodes(a, b, n):
     x = np.array([-np.sqrt(3 / 5), 0, np.sqrt(3 / 5)])
     w = np.array([5 / 9, 8 / 9, 5 / 9])
 
-    stack = [(a, b, 0)]  # Стек для хранения интервалов и значений интегралов
-    integral = 0  # Общее значение интеграла
-    error = 0  # Общее значение погрешности
-    while stack:
-        a, b, integral_ab = stack.pop()
-        c = (a + b) / 2  # Середина интервала
+    h = (b - a) / n  # Step
+    integral = 0
+    for i in range(n):
+        xi = a + i * h
+        for j in range(3):
+            integral += w[j] * f(xi + (h / 2) * (x[j] + 1))
+    integral *= h / 2
+    return integral
 
-        # Интегрирование на [a, c] и [c, b]
-        integral_ac = np.sum(w * f((c - a) / 2 * x + (a + c) / 2)) * (c - a) / 2
-        integral_cb = np.sum(w * f((b - c) / 2 * x + (b + c) / 2)) * (b - c) / 2
-        integral_abc = integral_ac + integral_cb
+def adaptive_gauss_quad(a, b, epsilon):
+    I_h = gauss_quad_3_nodes(a, b, 2)
+    I_h2 = gauss_quad_3_nodes(a, b, 4)
+    error_estimate = abs((1 / (2**3 - 1)) * (I_h - I_h2))
+    if error_estimate < epsilon:
+        return I_h, error_estimate
+    else:
+        mid = (a + b) / 2
+        return adaptive_gauss_quad(a, mid, epsilon / 2) + adaptive_gauss_quad(mid, b, epsilon / 2)
 
-        # Проверка критерия остановки по абсолютной погрешности
-        if np.abs(integral_abc - integral_ab) <= epsilon or (b - a) < 1e-10:
-            integral += integral_abc
-            error += np.abs(integral_abc - integral_ab)
-        else:
-            # Если погрешность больше заданной точности, разделим интервал и добавим оба подинтервала в стек
-            stack.append((a, c, integral_ac))
-            stack.append((c, b, integral_cb))
+# Integration interval
+a = 0
+b = 1
 
-    return integral, error
+# Specified absolute error
+epsilon = 1e-8
 
-# Пример использования
-def f(x):
-    return np.cosh(x)
-
-integral, error = adaptive_gauss_quad(f, 0, 1, 1e-8)
-print("Приближенное значение интеграла:", integral)
-print("Погрешность:", error)
+# Compute the integral with the specified absolute error
+integral, error_estimate = adaptive_gauss_quad(a, b, epsilon)
+print("Integral value:", integral)
+print("Error estimate:", error_estimate)
