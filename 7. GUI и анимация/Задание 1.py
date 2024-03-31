@@ -37,7 +37,7 @@ def toggle_animation():
         animate()
 # Создание главного окна
 window = tk.Tk()
-window.title("Гармонические колебания")
+window.title("Симуляция гармонических колебаний")
 # Создание холста для графика
 fig = Figure(figsize=(6, 4), dpi=100)
 canvas = tkagg.FigureCanvasTkAgg(fig, master=window)
