@@ -31,12 +31,12 @@ def animate():
         ax.clear()
         # Если амплитуда шума равна нулю, просто используем синус и косинус без добавления шума
         if noise_amplitude == 0.0:
-            ax.plot(t_values, amplitude_sin * np.sin(2 * np.pi * frequency_sin * t_values + phase_sin), label="Sin", color="magenta")
-            ax.plot(t_values, amplitude_cos * np.cos(2 * np.pi * frequency_cos * t_values + phase_cos), label="Cos", color="salmon")
+            ax.plot(t_values, amplitude_sin * np.sin(2 * np.pi * frequency_sin * t_values + phase_sin), label="Sin", color="teal")
+            ax.plot(t_values, amplitude_cos * np.cos(2 * np.pi * frequency_cos * t_values + phase_cos), label="Cos", color="orangered")
         else:
             # Построение синуса и косинуса с добавлением шума
-            ax.plot(t_values, x_sin, label="Sin", color="magenta")
-            ax.plot(t_values, x_cos, label="Cos", color="salmon")
+            ax.plot(t_values, x_sin, label="Sin", color="darkslategrey")
+            ax.plot(t_values, x_cos, label="Cos", color="maroon")
         ax.legend()
         canvas.draw()
         window.after(1, animate)
@@ -76,8 +76,8 @@ canvas = tkagg.FigureCanvasTkAgg(fig, master=window)
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 # Создание графика
 ax = fig.add_subplot(111)
-ax.plot(np.linspace(0, t, num_points), amplitude_sin * np.sin(2 * np.pi * frequency_sin * np.linspace(0, t, num_points) + phase_sin), label="Sin", color="magenta")
-ax.plot(np.linspace(0, t, num_points), amplitude_cos * np.cos(2 * np.pi * frequency_cos * np.linspace(0, t, num_points) + phase_cos), label="Cos", color="salmon")
+ax.plot(np.linspace(0, t, num_points), amplitude_sin * np.sin(2 * np.pi * frequency_sin * np.linspace(0, t, num_points) + phase_sin), label="Sin", color="teal")
+ax.plot(np.linspace(0, t, num_points), amplitude_cos * np.cos(2 * np.pi * frequency_cos * np.linspace(0, t, num_points) + phase_cos), label="Cos", color="orangered")
 ax.legend()
 # Создание кнопки start/pause
 button = tk.Button(window, text="Начать анимацию", command=toggle_animation)
